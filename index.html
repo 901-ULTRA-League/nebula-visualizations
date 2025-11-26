@@ -18,12 +18,12 @@
         <p class="hero__kicker">ULTRAMAN Card Game</p>
         <h1>Card Intelligence Dashboard</h1>
         <p class="hero__lede">
-          Live visuals generated directly from the Nebula API (<code>/cards</code>). Explore rarity trends, featured works, and set balance in one place.
+          Explore rarity trends, featured works, and set balance in one place.
         </p>
       </div>
       <div class="hero__cta">
         <button id="reloadButton" class="button">Reload data</button>
-        <a class="button button--ghost" href="https://nebula-collection-api.vercel.app/cards" target="_blank" rel="noreferrer">Open API</a>
+        <!-- <a class="button button--ghost" href="https://nebula-collection-api.vercel.app/cards" target="_blank" rel="noreferrer">Open API</a> -->
       </div>
     </div>
     <div class="hero__chips">
@@ -46,6 +46,10 @@
       <div class="chip">
         <span>Sets</span>
         <strong id="chipSets">—</strong>
+      </div>
+      <div class="chip">
+        <span>Erratum</span>
+        <strong id="chipErrata">—</strong>
       </div>
       <div class="chip">
         <span>Last refresh</span>
@@ -92,14 +96,9 @@
         <p class="stat__hint">after filters & search</p>
       </div>
       <div class="stat">
-        <p class="stat__label">Rarity spread</p>
-        <p class="stat__value" id="raritySpread">—</p>
-        <p class="stat__hint">distinct rarities</p>
-      </div>
-      <div class="stat">
-        <p class="stat__label">Set spread</p>
-        <p class="stat__value" id="setSpread">—</p>
-        <p class="stat__hint">distinct set codes</p>
+        <p class="stat__label">Erratum</p>
+        <p class="stat__value" id="errataCount">—</p>
+        <p class="stat__hint">cards with errata enabled</p>
       </div>
     </section>
 
@@ -110,7 +109,6 @@
             <p class="eyebrow">Rarity</p>
             <h3>Rarity distribution</h3>
           </div>
-          <span class="badge" id="rarityTotal">— cards</span>
         </header>
         <canvas id="rarityChart" height="220"></canvas>
       </article>
@@ -121,7 +119,6 @@
             <p class="eyebrow">Feature</p>
             <h3>Feature breakdown</h3>
           </div>
-          <span class="badge" id="featureTotal">— cards</span>
         </header>
         <canvas id="featureChart" height="220"></canvas>
       </article>
@@ -132,7 +129,6 @@
             <p class="eyebrow">Set balance</p>
             <h3>Section / Set share</h3>
           </div>
-          <span class="badge" id="sectionTotal">— cards</span>
         </header>
         <canvas id="sectionChart" height="220"></canvas>
       </article>
@@ -143,9 +139,29 @@
             <p class="eyebrow">Works</p>
             <h3>Top participating works</h3>
           </div>
-          <span class="badge" id="worksTotal">— cards</span>
         </header>
         <canvas id="worksChart" height="240"></canvas>
+      </article>
+
+      <article class="panel chart-card">
+        <header>
+          <div>
+            <p class="eyebrow">Timeline</p>
+            <h3>Series year trend</h3>
+            <p class="helper">Participating Works' Publishing Year</p>
+          </div>
+        </header>
+        <canvas id="yearChart" height="240"></canvas>
+      </article>
+
+      <article class="panel chart-card">
+        <header>
+          <div>
+            <p class="eyebrow">Illustrators</p>
+            <h3>Top illustrators</h3>
+          </div>
+        </header>
+        <canvas id="illustratorChart" height="240"></canvas>
       </article>
 
       <article class="panel chart-card wide">
@@ -154,7 +170,6 @@
             <p class="eyebrow">Set x rarity</p>
             <h3>Rarity by section (stacked)</h3>
           </div>
-          <span class="badge" id="stackedTotal">— cards</span>
         </header>
         <canvas id="sectionRarityChart" height="260"></canvas>
       </article>
@@ -165,7 +180,6 @@
             <p class="eyebrow">Characters</p>
             <h3>Top characters (overall)</h3>
           </div>
-          <span class="badge" id="charactersTotal">— cards</span>
         </header>
         <canvas id="charactersChart" height="240"></canvas>
       </article>
@@ -176,7 +190,6 @@
             <p class="eyebrow">Ultra Hero</p>
             <h3>Top characters: Ultra Hero</h3>
           </div>
-          <span class="badge" id="ultraTotal">— cards</span>
         </header>
         <canvas id="ultraChart" height="240"></canvas>
       </article>
@@ -187,7 +200,6 @@
             <p class="eyebrow">Kaiju</p>
             <h3>Top characters: Kaiju</h3>
           </div>
-          <span class="badge" id="kaijuTotal">— cards</span>
         </header>
         <canvas id="kaijuChart" height="240"></canvas>
       </article>
@@ -196,6 +208,7 @@
 
   <footer class="footer">
     <p>Built for ULTRAMAN collectors. Data sourced live from <a href="https://nebula-collection-api.vercel.app/cards" target="_blank" rel="noreferrer">Nebula API</a>.</p>
+    <p class="copyright">© 901 ULTRA League</p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js" crossorigin="anonymous" defer></script>

@@ -16,8 +16,7 @@ const elements = {
   stats: {
     total: document.getElementById("totalCards"),
     display: document.getElementById("displayCount"),
-    raritySpread: document.getElementById("raritySpread"),
-    setSpread: document.getElementById("setSpread"),
+    errata: document.getElementById("errataCount"),
   },
   chips: {
     total: document.getElementById("chipTotal"),
@@ -25,17 +24,8 @@ const elements = {
     rarities: document.getElementById("chipRarities"),
     characters: document.getElementById("chipCharacters"),
     sets: document.getElementById("chipSets"),
+    errata: document.getElementById("chipErrata"),
     updated: document.getElementById("chipUpdated"),
-  },
-  badgesMeta: {
-    rarity: document.getElementById("rarityTotal"),
-    feature: document.getElementById("featureTotal"),
-    section: document.getElementById("sectionTotal"),
-    works: document.getElementById("worksTotal"),
-    stacked: document.getElementById("stackedTotal"),
-    characters: document.getElementById("charactersTotal"),
-    ultra: document.getElementById("ultraTotal"),
-    kaiju: document.getElementById("kaijuTotal"),
   },
 };
 
@@ -149,15 +139,14 @@ function renderAll(cards) {
 function updateStats(currentCards, allCards) {
   elements.stats.total.textContent = allCards.length.toLocaleString();
   elements.stats.display.textContent = currentCards.length.toLocaleString();
-  elements.stats.raritySpread.textContent = uniqueValues(currentCards, "rarity")
-    .length;
-  elements.stats.setSpread.textContent = uniqueSets(currentCards).length;
+  elements.stats.errata.textContent = currentCards.filter((c) => c.errata_enable === true).length.toLocaleString();
 
   elements.chips.total.textContent = allCards.length.toLocaleString();
   elements.chips.works.textContent = uniqueValuesFiltered(currentCards, "participating_works", { skipUnknown: true }).length;
   elements.chips.rarities.textContent = uniqueValues(currentCards, "rarity").length;
   elements.chips.characters.textContent = uniqueValuesFiltered(currentCards, "character_name", { skipUnknown: true, skipValues: ["-"] }).length;
   elements.chips.sets.textContent = uniqueSets(currentCards).length;
+  elements.chips.errata.textContent = currentCards.filter((c) => c.errata_enable === true).length.toLocaleString();
   elements.chips.updated.textContent = new Date().toLocaleTimeString();
 }
 
@@ -165,15 +154,6 @@ function drawCharts(cards) {
   const rarityData = sortCounts(aggregate(cards, "rarity"));
   const featureData = sortCounts(aggregate(cards, "feature")).slice(0, 8);
   const sectionData = sortCounts(aggregateBySet(cards)).slice(0, 10);
-
-  elements.badgesMeta.rarity.textContent = `${cards.length} cards`;
-  elements.badgesMeta.feature.textContent = `${cards.length} cards`;
-  elements.badgesMeta.section.textContent = `${cards.length} cards`;
-  elements.badgesMeta.works.textContent = `${cards.length} cards`;
-  elements.badgesMeta.stacked.textContent = `${cards.length} cards`;
-  elements.badgesMeta.characters.textContent = `${cards.length} cards`;
-  elements.badgesMeta.ultra.textContent = `${cards.length} cards`;
-  elements.badgesMeta.kaiju.textContent = `${cards.length} cards`;
 
   createChart(
     "rarity",
@@ -220,6 +200,32 @@ function drawCharts(cards) {
 
   const stackedData = buildStackedData(cards, deriveSet, (c) => normalizeText(c.rarity));
   createStackedChart("sectionRarity", stackedData);
+
+  const yearCounts = aggregateFiltered(cards, "publication_year", {
+    skipUnknown: true,
+    skipValues: ["-", "Unknown"],
+  });
+  const yearData = Object.entries(yearCounts)
+    .filter(([label]) => label && label !== "Unknown" && label !== "-")
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => Number(a.label) - Number(b.label));
+  createChart(
+    "year",
+    "line",
+    yearData,
+    ["#4dd4ff"]
+  );
+
+  const illustrators = sortCounts(
+    aggregateFiltered(cards, "illustrator_name", { skipUnknown: true, skipValues: ["-"] })
+  ).slice(0, 12);
+  createChart(
+    "illustrator",
+    "bar",
+    illustrators,
+    COLORS.neutrals,
+    { plugins: { legend: { display: false } }, indexAxis: "y" }
+  );
 
   const charactersOverall = sortCounts(
     aggregateFiltered(cards, "character_name", { skipUnknown: true, skipValues: ["-"] })
@@ -354,22 +360,44 @@ function createChart(key, type, entries, palette, extraOptions = {}) {
 
   const ctx = canvas.getContext("2d");
   const colors = entries.map((_, idx) => palette[idx % palette.length]);
+
+  const dataset =
+    type === "line"
+      ? {
+          data: entries.map((entry) => entry.value),
+          borderColor: palette[0] || "#4dd4ff",
+          backgroundColor: "rgba(77, 212, 255, 0.18)",
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointBackgroundColor: palette[0] || "#4dd4ff",
+        }
+      : {
+          data: entries.map((entry) => entry.value),
+          backgroundColor: colors,
+          borderWidth: 0,
+          borderRadius: type === "bar" ? 8 : 0,
+        };
+
   const data = {
     labels: entries.map((entry) => entry.label),
     datasets: [
-      {
-        data: entries.map((entry) => entry.value),
-        backgroundColor: colors,
-        borderWidth: 0,
-        borderRadius: type === "bar" ? 8 : 0,
-      },
+      dataset,
     ],
   };
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    scales: type === "bar" ? { x: { grid: { color: "rgba(255,255,255,0.05)" } }, y: { grid: { display: false } } } : {},
+    scales:
+      type === "bar"
+        ? { x: { grid: { color: "rgba(255,255,255,0.05)" } }, y: { grid: { display: false } } }
+        : type === "line"
+        ? {
+            x: { grid: { color: "rgba(255,255,255,0.05)" } },
+            y: { grid: { color: "rgba(255,255,255,0.05)" }, beginAtZero: true },
+          }
+        : {},
     plugins: {
       legend: { display: type !== "bar" },
       tooltip: {
