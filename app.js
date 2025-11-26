@@ -24,6 +24,7 @@ const elements = {
     rarities: document.getElementById("chipRarities"),
     characters: document.getElementById("chipCharacters"),
     sets: document.getElementById("chipSets"),
+    types: document.getElementById("chipTypes"),
     errata: document.getElementById("chipErrata"),
     updated: document.getElementById("chipUpdated"),
   },
@@ -58,6 +59,15 @@ function deriveSet(card) {
 function aggregate(cards, key) {
   return cards.reduce((acc, card) => {
     const bucket = normalizeText(card[key]);
+    acc[bucket] = (acc[bucket] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function aggregateTypes(cards) {
+  return cards.reduce((acc, card) => {
+    const bucket = normalizeText(card.type);
+    if (bucket === "Unknown" || bucket === "-") return acc;
     acc[bucket] = (acc[bucket] || 0) + 1;
     return acc;
   }, {});
@@ -146,6 +156,7 @@ function updateStats(currentCards, allCards) {
   elements.chips.rarities.textContent = uniqueValues(currentCards, "rarity").length;
   elements.chips.characters.textContent = uniqueValuesFiltered(currentCards, "character_name", { skipUnknown: true, skipValues: ["-"] }).length;
   elements.chips.sets.textContent = uniqueSets(currentCards).length;
+  elements.chips.types.textContent = uniqueValuesFiltered(currentCards, "type", { skipUnknown: true, skipValues: ["-", "Unknown"] }).length;
   elements.chips.errata.textContent = currentCards.filter((c) => c.errata_enable === true).length.toLocaleString();
   elements.chips.updated.textContent = new Date().toLocaleTimeString();
 }
@@ -153,6 +164,7 @@ function updateStats(currentCards, allCards) {
 function drawCharts(cards) {
   const rarityData = sortCounts(aggregate(cards, "rarity"));
   const featureData = sortCounts(aggregate(cards, "feature")).slice(0, 8);
+  const typeData = sortCounts(aggregateTypes(cards)).slice(0, 8);
   const sectionData = sortCounts(aggregateBySet(cards)).slice(0, 10);
 
   createChart(
@@ -171,6 +183,17 @@ function drawCharts(cards) {
     {
       indexAxis: "y",
       plugins: { legend: { display: false } },
+    }
+  );
+
+  createChart(
+    "type",
+    "bar",
+    typeData,
+    COLORS.neutrals,
+    {
+      plugins: { legend: { display: false } },
+      indexAxis: "y",
     }
   );
 
