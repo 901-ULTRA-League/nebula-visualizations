@@ -1,5 +1,4 @@
 const API_URL = "https://nebula-collection-api.vercel.app/cards";
-const DEFAULT_LIMIT = 500;
 
 const state = {
   cards: [],
@@ -94,7 +93,7 @@ function aggregateBySet(cards) {
 
 async function fetchCards() {
   try {
-    const res = await fetch(`${API_URL}?limit=${DEFAULT_LIMIT}`);
+    const res = await fetch(API_URL);
     if (!res.ok) throw new Error(`Request failed: ${res.status}`);
     const payload = await res.json();
     const cards = Array.isArray(payload) ? payload : payload.data || [];
