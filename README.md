@@ -12,3 +12,5 @@ Static site for ULTRAMAN card game visuals powered by the Nebula API.
 - Rarity, feature, section/set, and top works breakdowns (Chart.js via CDN).
 - Stacked section × rarity chart to spot set balance.
 - Search and filters to focus the charts on specific cards.
+
+Copyright 2025 901 ULTRA League
